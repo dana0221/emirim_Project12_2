@@ -29,6 +29,8 @@ public class MainActivity extends AppCompatActivity {
 
         Button btnInit = findViewById(R.id.btn_init);
         Button btnInput = findViewById(R.id.btn_input);
+        Button btnDelete = findViewById(R.id.btn_delete);
+        Button btnUpdate = findViewById(R.id.btn_update);
         Button btnSearch = findViewById(R.id.btn_search);
 
         dbHelper = new MyDBHelper(this);
@@ -38,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 db = dbHelper.getWritableDatabase();
                 dbHelper.onUpgrade(db, 1, 2);
+                SelectDB();
                 db.close();
             }
         });
@@ -47,8 +50,29 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 db = dbHelper.getWritableDatabase();
                 db.execSQL("insert into groupTB values('" + editName.getText().toString() + "', " + editCount.getText().toString() + ");");
+                SelectDB();
                 db.close();
                 Toast.makeText(getApplicationContext(), "정상적으로 행이 삽입 되었습니다.", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        btnUpdate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                db = dbHelper.getWritableDatabase();
+                db.execSQL("update groupTb set count = " + editCount.getText().toString() + " where name = '" + editName.getText().toString() + "';");
+                SelectDB();
+                db.close();
+            }
+        });
+
+        btnDelete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                db = dbHelper.getWritableDatabase();
+                db.execSQL("delete from groupTB where name = '" + editName.getText().toString() + "';");
+                SelectDB();
+                db.close();
             }
         });
 
@@ -68,10 +92,29 @@ public class MainActivity extends AppCompatActivity {
                 editNameResult.setText(strName);
                 editCountResult.setText(strCount);
 
+                SelectDB();
                 cursor.close();
                 db.close();
             }
         });
+    }
+
+    public void SelectDB(){
+        db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery("select * from groupTB;", null);
+        String strName = "그룹 이름\r\n________\r\n";
+        String strCount = "인원 수\r\n________\r\n";
+
+        while(cursor.moveToNext()){
+            strName += cursor.getString(0) + "\r\n";
+            strCount += cursor.getInt(1) + "\r\n";
+        }
+
+        editNameResult.setText(strName);
+        editCountResult.setText(strCount);
+
+        cursor.close();
+        db.close();
     }
 
     public class MyDBHelper extends SQLiteOpenHelper{
